@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Yoru 夜 — Trading Diary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050508;
+      --bg-card: rgba(18, 18, 24, 0.82);
+      --border: rgba(255, 255, 255, 0.07);
+      --text: #e8e4d9;
+      --text-dim: #8a8578;
+      --text-soft: #b8b2a4;
+      --gold: #c9a84c;
+      --gold-soft: #a88b3a;
+      --gold-dim: rgba(201, 168, 76, 0.15);
+      --accent-line: rgba(201, 168, 76, 0.25);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      transition: background 0.6s ease;
+    }
+
+    /* ===== ANIME-INSPIRED WALLPAPERS ===== */
+    body.theme-night {
+      background: #050508;
+    }
+    body.theme-sakura {
+      background: linear-gradient(160deg, #1a0a14 0%, #0d0812 40%, #12081a 100%);
+    }
+    body.theme-cyber {
+      background: linear-gradient(160deg, #05051a 0%, #0a0a22 50%, #0f0520 100%);
+    }
+    body.theme-mist {
+      background: linear-gradient(180deg, #0c1018 0%, #0a0e16 50%, #080c12 100%);
+    }
+    body.theme-ember {
+      background: linear-gradient(160deg, #1a0c0a 0%, #120808 50%, #0e0608 100%);
+    }
+
+    /* Character-like soft glows (anime atmosphere) */
+    .char-glow {
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.18;
+      transition: opacity 0.5s;
+    }
+    .char-glow.left {
+      width: 320px; height: 420px;
+      left: -80px; bottom: -40px;
+      background: radial-gradient(circle, #ff9ec0 0%, transparent 70%);
+    }
+    .char-glow.right {
+      width: 280px; height: 380px;
+      right: -60px; bottom: 20px;
+      background: radial-gradient(circle, #7ec8ff 0%, transparent 70%);
+    }
+    body.theme-cyber .char-glow.left { background: radial-gradient(circle, #ff4d9e 0%, transparent 70%); }
+    body.theme-cyber .char-glow.right { background: radial-gradient(circle, #00f0ff 0%, transparent 70%); }
+    body.theme-sakura .char-glow.left { background: radial-gradient(circle, #ffb7c5 0%, transparent 70%); opacity: 0.22; }
+    body.theme-sakura .char-glow.right { background: radial-gradient(circle, #e8a0c0 0%, transparent 70%); }
+    body.theme-ember .char-glow.left { background: radial-gradient(circle, #ff7a4d 0%, transparent 70%); }
+    body.theme-ember .char-glow.right { background: radial-gradient(circle, #ffb347 0%, transparent 70%); }
+    body.theme-mist .char-glow.left,
+    body.theme-mist .char-glow.right { opacity: 0.08; }
+
+    /* Starfield */
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(1.5px 1.5px at 20px 30px, rgba(255,255,255,0.4), transparent),
+        radial-gradient(1px 1px at 80px 120px, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1.5px 1.5px at 160px 60px, rgba(255,255,255,0.35), transparent),
+        radial-gradient(1px 1px at 240px 180px, rgba(255,255,255,0.25), transparent),
+        radial-gradient(1.2px 1.2px at 320px 90px, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 400px 220px, rgba(255,255,255,0.2), transparent),
+        radial-gradient(1.5px 1.5px at 480px 40px, rgba(255,255,255,0.35), transparent),
+        radial-gradient(1px 1px at 560px 160px, rgba(255,255,255,0.25), transparent),
+        radial-gradient(1.2px 1.2px at 640px 100px, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 720px 200px, rgba(255,255,255,0.2), transparent),
+        radial-gradient(1.5px 1.5px at 100px 300px, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 300px 350px, rgba(255,255,255,0.25), transparent),
+        radial-gradient(1.2px 1.2px at 500px 320px, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 700px 380px, rgba(255,255,255,0.2), transparent);
+      background-size: 800px 450px;
+      animation: drift 120s linear infinite;
+    }
+    @keyframes drift {
+      from { transform: translateY(0); }
+      to { transform: translateY(-450px); }
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%);
+    }
+
+    .app {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 0 12px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.7rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--text);
+    }
+    .logo span {
+      color: var(--gold);
+      font-size: 1.1rem;
+      margin-left: 4px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
+    .moon-phase {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .moon-icon {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: linear-gradient(90deg, transparent 50%, var(--gold) 50%);
+      border: 1.5px solid var(--gold);
+      opacity: 0.85;
+    }
+
+    /* Theme switcher */
+    .theme-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+    .theme-btn {
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+      color: var(--text-dim);
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .theme-btn:hover { border-color: var(--gold-soft); color: var(--gold); }
+    .theme-btn.active {
+      background: var(--gold-dim);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .atmosphere {
+      text-align: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 0.95rem;
+      color: var(--text-dim);
+      letter-spacing: 0.03em;
+      margin-bottom: 22px;
+      opacity: 0.85;
+    }
+
+    /* Card */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 28px 24px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    }
+
+    .date-block { margin-bottom: 24px; }
+
+    .weekday {
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .big-date {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.5rem;
+      font-weight: 500;
+      line-height: 1.1;
+      color: var(--text);
+    }
+
+    .prompt {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 0.95rem;
+      color: var(--text-dim);
+      margin-top: 6px;
+    }
+
+    /* Fields */
+    .field { margin-bottom: 20px; }
+
+    .field label {
+      display: block;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 8px 0 10px;
+      color: var(--text);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      outline: none;
+      transition: border-color 0.25s;
+      border-radius: 0;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-bottom-color: var(--gold);
+    }
+    textarea {
+      min-height: 70px;
+      resize: vertical;
+      line-height: 1.55;
+      font-size: 1.1rem;
+    }
+    input::placeholder, textarea::placeholder {
+      color: rgba(184, 178, 164, 0.35);
+      font-style: italic;
+    }
+    select {
+      appearance: none;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238a8578' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 4px center;
+      padding-right: 24px;
+    }
+    select option { background: #121218; color: var(--text); }
+
+    /* Moods */
+    .moods {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 6px 0 20px;
+    }
+    .mood {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: transparent;
+      color: var(--text-soft);
+      cursor: pointer;
+      transition: all 0.25s;
+      font-family: inherit;
+      padding: 0;
+    }
+    .mood .kanji { font-size: 1.05rem; line-height: 1; margin-bottom: 2px; }
+    .mood .eng { font-size: 0.52rem; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.7; }
+    .mood:hover { border-color: var(--gold-soft); color: var(--gold); }
+    .mood.active {
+      background: var(--gold-dim);
+      border-color: var(--gold);
+      color: var(--gold);
+      box-shadow: 0 0 16px rgba(201, 168, 76, 0.2);
+    }
+
+    /* Section titles */
+    .section-title {
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin: 26px 0 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--accent-line);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 520px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .card { padding: 26px 18px 20px; }
+      .big-date { font-size: 2.1rem; }
+    }
+
+    /* Bottom bar */
+    .bottom-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+      color: var(--text-soft);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .pill:hover { border-color: var(--gold-soft); color: var(--gold); }
+    .pill.primary {
+      background: linear-gradient(135deg, rgba(201,168,76,0.25), rgba(201,168,76,0.12));
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    .pill.primary:hover {
+      background: linear-gradient(135deg, rgba(201,168,76,0.35), rgba(201,168,76,0.18));
+    }
+
+    .status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+    .saved { color: var(--gold-soft); }
+
+    /* Views */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .archive-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 62vh;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .archive-list::-webkit-scrollbar { width: 4px; }
+    .archive-list::-webkit-scrollbar-thumb {
+      background: rgba(201,168,76,0.25);
+      border-radius: 4px;
+    }
+
+    .archive-item {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .archive-item:hover {
+      border-color: var(--gold-soft);
+      background: rgba(201,168,76,0.04);
+    }
+    .archive-item .a-date {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+    .archive-item .a-mood {
+      font-size: 0.7rem;
+      color: var(--gold);
+      margin-left: 8px;
+    }
+    .archive-item .a-preview {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .archive-item .a-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .tag {
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-dim);
+    }
+    .tag.trade { border-color: rgba(201,168,76,0.35); color: var(--gold-soft); }
+    .tag.problem { border-color: rgba(200,100,100,0.35); color: #c88; }
+    .tag.solution { border-color: rgba(100,180,120,0.35); color: #8c8; }
+    .tag.activity { border-color: rgba(140,160,220,0.35); color: #aab; }
+
+    .empty {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-dim);
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1.1rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(18,18,24,0.95);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      z-index: 100;
+      transition: transform 0.35s ease;
+      backdrop-filter: blur(12px);
+      pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    .timeline {
+      position: fixed;
+      left: max(12px, calc(50% - 400px));
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      z-index: 1;
+      opacity: 0.45;
+    }
+    @media (max-width: 900px) { .timeline { display: none; } }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+    }
+    .dot.active {
+      background: var(--gold);
+      box-shadow: 0 0 8px rgba(201,168,76,0.5);
+    }
+  </style>
+</head>
+<body class="theme-night">
+  <div class="stars"></div>
+  <div class="vignette"></div>
+  <div class="char-glow left"></div>
+  <div class="char-glow right"></div>
+
+  <div class="timeline">
+    <div class="dot"></div><div class="dot"></div><div class="dot active"></div>
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+
+  <div class="app">
+    <header>
+      <div class="logo">Yoru <span>夜</span></div>
+      <div class="header-right">
+        <div class="moon-phase">
+          <div class="moon-icon"></div>
+          <span>Night</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Wallpaper themes -->
+    <div class="theme-bar">
+      <button class="theme-btn active" data-theme="night">✦ Night</button>
+      <button class="theme-btn" data-theme="sakura">桜 Sakura</button>
+      <button class="theme-btn" data-theme="cyber">⚡ Cyber</button>
+      <button class="theme-btn" data-theme="mist">霧 Mist</button>
+      <button class="theme-btn" data-theme="ember">炎 Ember</button>
+    </div>
+
+    <div class="atmosphere" id="atmosphere">City hush under the sky</div>
+
+    <!-- ========== TONIGHT ========== -->
+    <div class="view active" id="view-tonight">
+      <div class="card">
+        <div class="date-block">
+          <div class="weekday" id="weekday">THURSDAY</div>
+          <div class="big-date" id="big-date">1 October</div>
+          <div class="prompt" id="daily-prompt">What lingered after the lights went out?</div>
+        </div>
+
+        <!-- Title -->
+        <div class="field">
+          <input type="text" id="title" placeholder="A title for tonight" />
+        </div>
+
+        <!-- Daily Activities -->
+        <div class="section-title">Daily Activities</div>
+        <div class="field">
+          <textarea id="activities" placeholder="What did you do today? Work, study, training, meetings, life…" rows="3"></textarea>
+        </div>
+
+        <!-- Mood -->
+        <div class="moods" id="moods">
+          <button class="mood" data-mood="rain"><span class="kanji">雨</span><span class="eng">Rain</span></button>
+          <button class="mood" data-mood="bloom"><span class="kanji">桜</span><span class="eng">Bloom</span></button>
+          <button class="mood" data-mood="stars"><span class="kanji">星</span><span class="eng">Stars</span></button>
+          <button class="mood" data-mood="still"><span class="kanji">月</span><span class="eng">Still</span></button>
+          <button class="mood" data-mood="hush"><span class="kanji">雪</span><span class="eng">Hush</span></button>
+          <button class="mood" data-mood="lamp"><span class="kanji">灯</span><span class="eng">Lamp</span></button>
+        </div>
+
+        <!-- Free thoughts -->
+        <div class="field">
+          <textarea id="body" placeholder="Write into the dark… thoughts, feelings, reflections" rows="3"></textarea>
+        </div>
+
+        <!-- Trading -->
+        <div class="section-title">Trading</div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Pair / Symbol</label>
+            <input type="text" id="trade-pair" placeholder="BTC/USDT · AAPL · EURUSD" />
+          </div>
+          <div class="field">
+            <label>Side</label>
+            <select id="trade-side">
+              <option value="">—</option>
+              <option value="Long">Long</option>
+              <option value="Short">Short</option>
+              <option value="Spot Buy">Spot Buy</option>
+              <option value="Spot Sell">Spot Sell</option>
+              <option value="No Trade">No Trade</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>P&L</label>
+            <input type="text" id="trade-pnl" placeholder="+120 or −45" />
+          </div>
+          <div class="field">
+            <label>Emotion</label>
+            <select id="trade-emotion">
+              <option value="">—</option>
+              <option value="Calm">Calm</option>
+              <option value="Confident">Confident</option>
+              <option value="FOMO">FOMO</option>
+              <option value="Fear">Fear</option>
+              <option value="Revenge">Revenge</option>
+              <option value="Focused">Focused</option>
+              <option value="Bored">Bored</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Trade notes / Setup</label>
+          <textarea id="trade-notes" placeholder="Why this trade? Risk, RR, mistakes, what you noticed…" rows="2"></textarea>
+        </div>
+
+        <!-- Problems -->
+        <div class="section-title">Problems</div>
+        <div class="field">
+          <textarea id="problems" placeholder="What went wrong? Emotional struggles, technical issues, external events…" rows="2"></textarea>
+        </div>
+
+        <!-- Solutions -->
+        <div class="section-title">Solutions & Reference</div>
+        <div class="field">
+          <textarea id="solutions" placeholder="What will you do differently next time? Rules, mindset tips, systems to improve…" rows="2"></textarea>
+        </div>
+
+        <div class="status">
+          <span id="word-count">0 words</span>
+          <span class="saved" id="save-status">○ Unsaved</span>
+        </div>
+      </div>
+
+      <div class="bottom-bar">
+        <button class="pill primary" id="save-btn">✦ Save tonight</button>
+        <button class="pill" id="clear-btn">Clear</button>
+        <button class="pill" id="goto-archive">Archive</button>
+      </div>
+    </div>
+
+    <!-- ========== ARCHIVE ========== -->
+    <div class="view" id="view-archive">
+      <div class="card">
+        <div class="date-block">
+          <div class="weekday">ARCHIVE</div>
+          <div class="big-date" style="font-size:2rem;">Past nights</div>
+          <div class="prompt">What the dark remembers</div>
+        </div>
+        <div class="archive-list" id="archive-list">
+          <div class="empty">No entries yet — the night is still blank</div>
+        </div>
+      </div>
+      <div class="bottom-bar">
+        <button class="pill primary" id="goto-tonight">✦ Tonight</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Safe storage that works even when localStorage is blocked (sandbox / private mode)
+    const memoryStore = {};
+    const storage = {
+      get(key) {
+        try {
+          return localStorage.getItem(key);
+        } catch (e) {
+          return memoryStore[key] || null;
+        }
+      },
+      set(key, value) {
+        try {
+          localStorage.setItem(key, value);
+        } catch (e) {
+          memoryStore[key] = value;
+        }
+      }
+    };
+
+    const STORAGE_KEY = 'yoruTradingDiary_v3';
+    let entries = [];
+    try {
+      entries = JSON.parse(storage.get(STORAGE_KEY) || '[]');
+    } catch (e) {
+      entries = [];
+    }
+    let selectedMood = null;
+    let editingId = null;
+
+    const prompts = [
+      "What lingered after the lights went out?",
+      "What did the quiet ask of you?",
+      "Which thought refused to sleep?",
+      "What stayed when everything else left?",
+      "What did you notice in the pause?",
+      "Where did your mind wander after midnight?",
+      "What would you tell the morning?",
+      "What weight did you put down tonight?"
+    ];
+
+    const atmospheres = [
+      "City hush under the sky",
+      "Soft rain on distant glass",
+      "The hour between stars",
+      "Quiet rooms and open windows",
+      "Moonlight on empty streets",
+      "The last train has gone",
+      "Wind through the leaves outside"
+    ];
+
+    const $ = id => document.getElementById(id);
+    const weekdayEl = $('weekday');
+    const bigDateEl = $('big-date');
+    const promptEl = $('daily-prompt');
+    const atmosphereEl = $('atmosphere');
+    const titleInput = $('title');
+    const activitiesInput = $('activities');
+    const bodyInput = $('body');
+    const tradePair = $('trade-pair');
+    const tradeSide = $('trade-side');
+    const tradePnl = $('trade-pnl');
+    const tradeEmotion = $('trade-emotion');
+    const tradeNotes = $('trade-notes');
+    const problems = $('problems');
+    const solutions = $('solutions');
+    const wordCount = $('word-count');
+    const saveStatus = $('save-status');
+    const toast = $('toast');
+    const archiveList = $('archive-list');
+
+    // Date
+    function updateDateDisplay(dateStr) {
+      const d = dateStr ? new Date(dateStr + 'T12:00:00') : new Date();
+      const days = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      weekdayEl.textContent = days[d.getDay()];
+      bigDateEl.textContent = `${d.getDate()} ${months[d.getMonth()]}`;
+    }
+    updateDateDisplay();
+    atmosphereEl.textContent = atmospheres[Math.floor(Math.random() * atmospheres.length)];
+    promptEl.textContent = prompts[Math.floor(Math.random() * prompts.length)];
+
+    // Themes / Wallpapers
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.body.className = 'theme-' + btn.dataset.theme;
+        storage.set('yoruTheme', btn.dataset.theme);
+      });
+    });
+    const savedTheme = storage.get('yoruTheme') || 'night';
+    document.body.className = 'theme-' + savedTheme;
+    document.querySelectorAll('.theme-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.theme === savedTheme);
+    });
+
+    // Moods
+    document.querySelectorAll('.mood').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mood').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedMood = btn.dataset.mood;
+        markDirty();
+      });
+    });
+
+    // Word count
+    function countWords() {
+      const text = [titleInput.value, activitiesInput.value, bodyInput.value, tradeNotes.value, problems.value, solutions.value].join(' ');
+      const n = text.trim() ? text.trim().split(/\s+/).length : 0;
+      wordCount.textContent = n + (n === 1 ? ' word' : ' words');
+    }
+    function markDirty() {
+      saveStatus.innerHTML = '○ Unsaved';
+      countWords();
+    }
+    [titleInput, activitiesInput, bodyInput, tradePair, tradeSide, tradePnl, tradeEmotion, tradeNotes, problems, solutions]
+      .forEach(el => el.addEventListener('input', markDirty));
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    // Save
+    $('save-btn').addEventListener('click', () => {
+      const data = {
+        id: editingId || Date.now(),
+        date: new Date().toISOString().slice(0, 10),
+        title: titleInput.value.trim(),
+        activities: activitiesInput.value.trim(),
+        body: bodyInput.value.trim(),
+        mood: selectedMood,
+        tradePair: tradePair.value.trim(),
+        tradeSide: tradeSide.value,
+        tradePnl: tradePnl.value.trim(),
+        tradeEmotion: tradeEmotion.value,
+        tradeNotes: tradeNotes.value.trim(),
+        problems: problems.value.trim(),
+        solutions: solutions.value.trim(),
+        updatedAt: new Date().toISOString()
+      };
+
+      if (!data.title && !data.activities && !data.body && !data.tradeNotes && !data.problems && !data.solutions && !data.tradePair) {
+        showToast('Write something first…');
+        return;
+      }
+
+      if (editingId) {
+        const idx = entries.findIndex(e => e.id === editingId);
+        if (idx !== -1) entries[idx] = data;
+      } else {
+        const today = data.date;
+        const existing = entries.findIndex(e => e.date === today);
+        if (existing !== -1) {
+          data.id = entries[existing].id;
+          entries[existing] = data;
+        } else {
+          entries.push(data);
+        }
+      }
+
+      storage.set(STORAGE_KEY, JSON.stringify(entries));
+      editingId = null;
+      saveStatus.innerHTML = '✓ Saved here';
+      showToast('Saved to the night ✦');
+      renderArchive();
+    });
+
+    // Clear
+    $('clear-btn').addEventListener('click', () => {
+      titleInput.value = '';
+      activitiesInput.value = '';
+      bodyInput.value = '';
+      tradePair.value = '';
+      tradeSide.value = '';
+      tradePnl.value = '';
+      tradeEmotion.value = '';
+      tradeNotes.value = '';
+      problems.value = '';
+      solutions.value = '';
+      selectedMood = null;
+      document.querySelectorAll('.mood').forEach(b => b.classList.remove('active'));
+      editingId = null;
+      markDirty();
+      updateDateDisplay();
+      promptEl.textContent = prompts[Math.floor(Math.random() * prompts.length)];
+    });
+
+    // Views
+    function showView(name) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      $(`view-${name}`).classList.add('active');
+    }
+    $('goto-archive').addEventListener('click', () => { renderArchive(); showView('archive'); });
+    $('goto-tonight').addEventListener('click', () => showView('tonight'));
+
+    // Archive
+    function renderArchive() {
+      if (entries.length === 0) {
+        archiveList.innerHTML = '<div class="empty">No entries yet — the night is still blank</div>';
+        return;
+      }
+      const sorted = [...entries].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+      const moodMap = { rain:'雨', bloom:'桜', stars:'星', still:'月', hush:'雪', lamp:'灯' };
+
+      archiveList.innerHTML = sorted.map(e => {
+        const tags = [];
+        if (e.activities) tags.push(`<span class="tag activity">Activities</span>`);
+        if (e.tradeSide && e.tradeSide !== 'No Trade') tags.push(`<span class="tag trade">${e.tradeSide}</span>`);
+        if (e.problems) tags.push(`<span class="tag problem">Problem</span>`);
+        if (e.solutions) tags.push(`<span class="tag solution">Solution</span>`);
+
+        const preview = e.title || e.activities || e.body || e.tradeNotes || e.problems || '—';
+        const moodKanji = e.mood ? `<span class="a-mood">${moodMap[e.mood] || ''}</span>` : '';
+        const d = new Date(e.date + 'T12:00:00');
+        const dateLabel = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
+        return `
+          <div class="archive-item" data-id="${e.id}">
+            <div><span class="a-date">${dateLabel}</span>${moodKanji}</div>
+            <div class="a-preview">${escapeHtml(preview)}</div>
+            <div class="a-tags">${tags.join('')}</div>
+          </div>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.archive-item').forEach(item => {
+        item.addEventListener('click', () => loadEntry(Number(item.dataset.id)));
+      });
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function loadEntry(id) {
+      const e = entries.find(x => x.id === id);
+      if (!e) return;
+      editingId = id;
+      titleInput.value = e.title || '';
+      activitiesInput.value = e.activities || '';
+      bodyInput.value = e.body || '';
+      tradePair.value = e.tradePair || '';
+      tradeSide.value = e.tradeSide || '';
+      tradePnl.value = e.tradePnl || '';
+      tradeEmotion.value = e.tradeEmotion || '';
+      tradeNotes.value = e.tradeNotes || '';
+      problems.value = e.problems || '';
+      solutions.value = e.solutions || '';
+      selectedMood = e.mood || null;
+      document.querySelectorAll('.mood').forEach(b => {
+        b.classList.toggle('active', b.dataset.mood === selectedMood);
+      });
+      updateDateDisplay(e.date);
+      countWords();
+      saveStatus.innerHTML = '✓ Loaded';
+      showView('tonight');
+      showToast('Returned to that night');
+    }
+
+    countWords();
+    renderArchive();
+  </script>
+</body>
+</html>
